@@ -5,6 +5,8 @@ from typing import Any
 
 import streamlit as st
 
+from components.reasoning_form import render_reasoning_form
+
 
 def render_case(case: dict[str, Any]) -> None:
     """Display a student-safe case without revealing reference answers."""
@@ -25,3 +27,10 @@ def render_case(case: dict[str, Any]) -> None:
             st.info("ECG image will be added for this case.")
     else:
         st.info("ECG image will be added for this case.")
+
+    st.divider()
+    if st.session_state.get("reasoning_submitted"):
+        st.success("Your reasoning has been recorded.")
+        st.info("Feedback and reasoning evaluation will be added in the next stage.")
+    else:
+        render_reasoning_form(case["id"])

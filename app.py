@@ -31,11 +31,32 @@ if st.session_state.case_started and st.session_state.selected_case_id:
         st.rerun()
 
     render_case(case)
-    st.divider()
-    st.caption("The guided learning workflow will be added in a future step.")
     if st.button("Back to Cases"):
         st.session_state.selected_case_id = None
         st.session_state.case_started = False
+        st.session_state.reasoning_draft = None
+        st.session_state.reasoning_submitted = False
+        st.session_state.reasoning_step = 0
+        for widget_key in (
+            "reasoning_rate_answer",
+            "reasoning_rate_reasoning",
+            "reasoning_rhythm_answer",
+            "reasoning_rhythm_reasoning",
+            "reasoning_axis_answer",
+            "reasoning_axis_reasoning",
+            "reasoning_p_waves_answer",
+            "reasoning_p_waves_reasoning",
+            "reasoning_pr_interval_answer",
+            "reasoning_pr_interval_reasoning",
+            "reasoning_qrs_answer",
+            "reasoning_qrs_reasoning",
+            "reasoning_st_t_answer",
+            "reasoning_st_t_reasoning",
+            "reasoning_interpretation",
+            "reasoning_overall_reasoning",
+            "reasoning_confidence",
+        ):
+            st.session_state.pop(widget_key, None)
         st.rerun()
 else:
     st.subheader("Choose your learning level")
@@ -56,6 +77,10 @@ else:
                 key="case_selection",
             )
             if st.button("Start Case", type="primary"):
+                if st.session_state.get("selected_case_id") != selected_case_id:
+                    st.session_state.reasoning_draft = None
+                    st.session_state.reasoning_step = 0
+                    st.session_state.reasoning_submitted = False
                 st.session_state.selected_case_id = selected_case_id
                 st.session_state.case_started = True
                 st.rerun()

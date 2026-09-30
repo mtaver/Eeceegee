@@ -150,7 +150,7 @@ def _items(value: Any) -> list[Any]:
 def _issue_feedback(step: str, issue_type: str, severity: FeedbackSeverity) -> FeedbackItem:
     question = _QUESTIONS.get(step, _QUESTIONS["overall_reasoning"])
     if issue_type == "not_evaluated":
-        question = _EXPLANATIONS["not_evaluated"]
+        question = f"{_EXPLANATIONS['not_evaluated']} {question}"
     return FeedbackItem(
         step=step,
         severity=severity,
@@ -193,6 +193,7 @@ def _collect_candidates(evaluation_result: Any) -> list[tuple[int, FeedbackItem]
                 seen.add(key)
 
     has_not_evaluated_step = False
+    first_not_evaluated_step: str | None = None
     for step_result in _items(evaluation.get("step_results")):
         result = _mapping(step_result)
         step = str(result.get("step", "overall_reasoning"))
@@ -201,6 +202,8 @@ def _collect_candidates(evaluation_result: Any) -> list[tuple[int, FeedbackItem]
         issues = _items(result.get("issues"))
         if status == "not_evaluated":
             has_not_evaluated_step = True
+            if first_not_evaluated_step is None:
+                first_not_evaluated_step = step
             continue
         elif status == "missing":
             issue_type = "missing_answer"
@@ -225,8 +228,8 @@ def _collect_candidates(evaluation_result: Any) -> list[tuple[int, FeedbackItem]
             candidates.append((_PRIORITY.get(issue_type, 99), item))
             seen.add(key)
 
-    if has_not_evaluated_step and ("overall_reasoning", "not_evaluated") not in seen:
-        item = _issue_feedback("overall_reasoning", "not_evaluated", FeedbackSeverity.INFORMATION)
+    if has_not_evaluated_step and ((first_not_evaluated_step or "overall_reasoning"), "not_evaluated") not in seen:
+        item = _issue_feedback(first_not_evaluated_step or "overall_reasoning", "not_evaluated", FeedbackSeverity.INFORMATION)
         candidates.append((_PRIORITY["not_evaluated"], item))
 
     if not candidates and str(_value(evaluation.get("overall_status", ""))) == "not_evaluated":
@@ -260,7 +263,11 @@ def get_hint(
         base = _issue_feedback(step, issue_type or "weak_reasoning", FeedbackSeverity.SUGGESTION)
 
     safe_level = min(max(int(hint_level), int(HintLevel.GUIDING_QUESTION)), MAX_HINT_LEVEL)
-    if base.issue_type == "not_evaluated":
+    if base.issue_type == "not_evaluated" and safe_level == HintLevel.GUIDING_QUESTION:
+        message = f"{_EXPLANATIONS['not_evaluated']} {_QUESTIONS.get(step, _QUESTIONS['overall_reasoning'])}"
+    elif base.issue_type == "not_evaluated" and safe_level == HintLevel.SPECIFIC_HINT:
+        message = f"{_EXPLANATIONS['not_evaluated']} {_HINTS.get(step, _HINTS['overall_reasoning'])[1]}"
+    elif base.issue_type == "not_evaluated":
         message = _EXPLANATIONS["not_evaluated"]
     elif safe_level == HintLevel.GUIDING_QUESTION:
         message = _QUESTIONS.get(step, _QUESTIONS["overall_reasoning"])

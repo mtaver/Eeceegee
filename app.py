@@ -3,12 +3,14 @@
 import streamlit as st
 
 from components.case_view import render_case
+from components.progress_view import render_progress
 from services.case_manager import (
-    get_case_by_id,
     get_case_for_student,
     get_cases_by_difficulty,
     get_available_difficulties,
 )
+from services.progress import initialize_progress_session, record_case_started
+from services.case_manager import get_case_by_id
 
 
 st.set_page_config(page_title="ECG Learning Coach", page_icon="🫀", layout="centered")
@@ -17,13 +19,25 @@ st.title("ECG Learning Coach")
 st.write(
     "Learn to interpret ECGs by improving your clinical reasoning—not by simply receiving the diagnosis."
 )
+initialize_progress_session(st.session_state)
+st.session_state.setdefault("page", "Learning Cases")
+
+page = st.radio(
+    "Go to",
+    ("Learning Cases", "Progress"),
+    horizontal=True,
+    key="page",
+    label_visibility="collapsed",
+)
 
 if "selected_case_id" not in st.session_state:
     st.session_state.selected_case_id = None
 if "case_started" not in st.session_state:
     st.session_state.case_started = False
 
-if st.session_state.case_started and st.session_state.selected_case_id:
+if page == "Progress":
+    render_progress(st.session_state.progress)
+elif st.session_state.case_started and st.session_state.selected_case_id:
     case = get_case_for_student(st.session_state.selected_case_id)
     reference_case = get_case_by_id(st.session_state.selected_case_id)
     if case is None or reference_case is None:
@@ -89,4 +103,5 @@ else:
                     st.session_state.reasoning_feedback = []
                 st.session_state.selected_case_id = selected_case_id
                 st.session_state.case_started = True
+                record_case_started(st.session_state.progress, selected_case_id)
                 st.rerun()

@@ -13,6 +13,11 @@ from services.reasoning import (
 )
 from services.evaluator import evaluate_attempt
 from services.feedback import generate_feedback, get_hint, MAX_HINT_LEVEL
+from services.progress import (
+    record_attempt as record_progress_attempt,
+    record_hint_usage,
+    record_revision,
+)
 
 
 STEPS = (
@@ -231,6 +236,13 @@ def render_reasoning_form(case_id: str, reference_case: dict[str, Any]) -> None:
                     st.session_state.reasoning_feedback = [
                         item.to_dict() for item in generate_feedback(evaluation)
                     ]
+                    st.session_state.active_attempt_record = record_progress_attempt(
+                        st.session_state.progress,
+                        draft,
+                        evaluation,
+                        st.session_state.reasoning_feedback,
+                        attempt_history=st.session_state.attempt_history,
+                    )
                     st.session_state.reasoning_submitted = True
                     st.rerun()
 
@@ -259,9 +271,20 @@ def render_feedback_and_revision() -> None:
                 ).to_dict()
                 feedback_items[index] = updated
                 st.session_state.reasoning_feedback = feedback_items
+                active_record = st.session_state.get("active_attempt_record")
+                if isinstance(active_record, dict):
+                    record_hint_usage(
+                        st.session_state.progress,
+                        active_record,
+                        item["step"],
+                        next_level,
+                    )
                 st.rerun()
 
         if st.button("Revise My Reasoning", key=f"revise_{index}_{item['step']}"):
+            active_record = st.session_state.get("active_attempt_record")
+            if isinstance(active_record, dict):
+                record_revision(st.session_state.progress, active_record)
             history = st.session_state.get("reasoning_attempt_history", [])
             history.append(
                 {

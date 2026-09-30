@@ -1,23 +1,67 @@
 [
   {
     "id": "case_001",
-    "title": "Basic Rhythm Recognition",
+    "title": "Rate and Rhythm Fundamentals",
     "difficulty": "Beginner",
+    "description": "Educational placeholder case for practicing a consistent approach to heart rate and rhythm. No ECG image or reference answer has been added yet.",
     "learning_objectives": [
-      "Determine the ventricular rate",
-      "Assess rhythm regularity",
-      "Identify P waves"
+      "Describe a systematic approach to estimating heart rate",
+      "Explain how to assess rhythm regularity"
     ],
-    "ecg_image": "assets/ecg/case_001.png",
-    "reference_findings": {
-      "rate": "",
-      "rhythm": "",
-      "axis": "",
-      "p_waves": "",
-      "pr_interval": "",
-      "qrs": "",
-      "st_t": ""
-    },
+    "ecg_image": null,
+    "reference_findings": {},
+    "reference_interpretation": ""
+  },
+  {
+    "id": "case_002",
+    "title": "Identifying ECG Components",
+    "difficulty": "Beginner",
+    "description": "Educational placeholder case for learning the parts of an ECG tracing. No ECG image or reference answer has been added yet.",
+    "learning_objectives": [
+      "Identify the usual ECG waveform components",
+      "Describe the purpose of the PR interval and QRS complex"
+    ],
+    "ecg_image": null,
+    "reference_findings": {},
+    "reference_interpretation": ""
+  },
+  {
+    "id": "case_003",
+    "title": "Systematic ECG Analysis",
+    "difficulty": "Intermediate",
+    "description": "Educational placeholder case for practicing a structured sequence for ECG review. No ECG image or reference answer has been added yet.",
+    "learning_objectives": [
+      "Organize ECG review into a repeatable sequence",
+      "Explain how observations can be documented before interpretation"
+    ],
+    "ecg_image": null,
+    "reference_findings": {},
+    "reference_interpretation": ""
+  },
+  {
+    "id": "case_004",
+    "title": "Rhythm Differentiation",
+    "difficulty": "Intermediate",
+    "description": "Educational placeholder case for comparing a learner's rhythm-assessment approach. No ECG image or reference answer has been added yet.",
+    "learning_objectives": [
+      "Describe features used when assessing rhythm",
+      "Distinguish observations from conclusions in rhythm reasoning"
+    ],
+    "ecg_image": null,
+    "reference_findings": {},
+    "reference_interpretation": ""
+  },
+  {
+    "id": "case_005",
+    "title": "Complex ECG Reasoning",
+    "difficulty": "Advanced",
+    "description": "Educational placeholder case for reflecting on complex ECG reasoning strategies. No ECG image or reference answer has been added yet.",
+    "learning_objectives": [
+      "Structure a multi-step ECG reasoning process",
+      "Identify uncertainty and explain what additional review may be needed"
+    ],
+    "ecg_image": null,
+    "reference_findings": {},
     "reference_interpretation": ""
   }
 ]

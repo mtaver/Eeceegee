@@ -4,6 +4,7 @@ import streamlit as st
 
 from components.case_view import render_case
 from services.case_manager import (
+    get_case_by_id,
     get_case_for_student,
     get_cases_by_difficulty,
     get_available_difficulties,
@@ -24,18 +25,20 @@ if "case_started" not in st.session_state:
 
 if st.session_state.case_started and st.session_state.selected_case_id:
     case = get_case_for_student(st.session_state.selected_case_id)
-    if case is None:
+    reference_case = get_case_by_id(st.session_state.selected_case_id)
+    if case is None or reference_case is None:
         st.warning("That case is no longer available. Please choose another case.")
         st.session_state.selected_case_id = None
         st.session_state.case_started = False
         st.rerun()
 
-    render_case(case)
+    render_case(case, reference_case)
     if st.button("Back to Cases"):
         st.session_state.selected_case_id = None
         st.session_state.case_started = False
         st.session_state.reasoning_draft = None
         st.session_state.reasoning_submitted = False
+        st.session_state.reasoning_evaluation = None
         st.session_state.reasoning_step = 0
         for widget_key in (
             "reasoning_rate_answer",
@@ -81,6 +84,7 @@ else:
                     st.session_state.reasoning_draft = None
                     st.session_state.reasoning_step = 0
                     st.session_state.reasoning_submitted = False
+                    st.session_state.reasoning_evaluation = None
                 st.session_state.selected_case_id = selected_case_id
                 st.session_state.case_started = True
                 st.rerun()

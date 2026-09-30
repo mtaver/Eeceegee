@@ -10,6 +10,7 @@ from services.reasoning import (
     set_confidence,
     validate_reasoning_attempt,
 )
+from services.evaluator import evaluate_attempt
 
 
 STEPS = (
@@ -152,7 +153,7 @@ def _render_finding_step(draft: dict[str, Any], field: str) -> None:
         raise ValueError(f"Unknown finding field: {field}")
 
 
-def render_reasoning_form(case_id: str) -> None:
+def render_reasoning_form(case_id: str, reference_case: dict[str, Any]) -> None:
     """Render one workflow step at a time and store a completed attempt."""
     draft = _get_draft(case_id)
     step_index = int(st.session_state.get("reasoning_step", 0))
@@ -220,12 +221,15 @@ def render_reasoning_form(case_id: str) -> None:
                     st.warning(errors[0])
                 else:
                     st.session_state.completed_reasoning_attempt = draft.copy()
+                    st.session_state.reasoning_evaluation = evaluate_attempt(
+                        reference_case,
+                        draft,
+                    ).to_dict()
                     st.session_state.reasoning_submitted = True
                     st.rerun()
 
     if st.session_state.get("reasoning_submitted"):
-        st.success("Your reasoning has been recorded.")
-        st.info("Feedback and reasoning evaluation will be added in the next stage.")
+        st.success("Your reasoning has been recorded and evaluated internally.")
 
 
 def _validate_current_step(draft: dict[str, Any], field: str) -> list[str]:

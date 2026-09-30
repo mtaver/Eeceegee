@@ -5,7 +5,7 @@ from typing import Any
 
 import streamlit as st
 
-from components.reasoning_form import render_reasoning_form
+from components.reasoning_form import render_feedback_and_revision, render_reasoning_form
 
 
 def render_case(case: dict[str, Any], reference_case: dict[str, Any]) -> None:
@@ -31,5 +31,6 @@ def render_case(case: dict[str, Any], reference_case: dict[str, Any]) -> None:
     st.divider()
     if st.session_state.get("reasoning_submitted"):
         st.success("Your reasoning has been recorded and evaluated internally.")
+        render_feedback_and_revision()
     else:
         render_reasoning_form(case["id"], reference_case)

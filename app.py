@@ -39,6 +39,7 @@ if st.session_state.case_started and st.session_state.selected_case_id:
         st.session_state.reasoning_draft = None
         st.session_state.reasoning_submitted = False
         st.session_state.reasoning_evaluation = None
+        st.session_state.reasoning_feedback = []
         st.session_state.reasoning_step = 0
         for widget_key in (
             "reasoning_rate_answer",
@@ -85,6 +86,7 @@ else:
                     st.session_state.reasoning_step = 0
                     st.session_state.reasoning_submitted = False
                     st.session_state.reasoning_evaluation = None
+                    st.session_state.reasoning_feedback = []
                 st.session_state.selected_case_id = selected_case_id
                 st.session_state.case_started = True
                 st.rerun()

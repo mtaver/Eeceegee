@@ -1,5 +1,6 @@
 """Step-by-step learner ECG reasoning form."""
 
+from copy import deepcopy
 from typing import Any
 
 import streamlit as st
@@ -11,6 +12,7 @@ from services.reasoning import (
     validate_reasoning_attempt,
 )
 from services.evaluator import evaluate_attempt
+from services.feedback import generate_feedback, get_hint, MAX_HINT_LEVEL
 
 
 STEPS = (
@@ -220,16 +222,68 @@ def render_reasoning_form(case_id: str, reference_case: dict[str, Any]) -> None:
                 if errors:
                     st.warning(errors[0])
                 else:
-                    st.session_state.completed_reasoning_attempt = draft.copy()
-                    st.session_state.reasoning_evaluation = evaluate_attempt(
+                    st.session_state.completed_reasoning_attempt = deepcopy(draft)
+                    evaluation = evaluate_attempt(
                         reference_case,
                         draft,
-                    ).to_dict()
+                    )
+                    st.session_state.reasoning_evaluation = evaluation.to_dict()
+                    st.session_state.reasoning_feedback = [
+                        item.to_dict() for item in generate_feedback(evaluation)
+                    ]
                     st.session_state.reasoning_submitted = True
                     st.rerun()
 
     if st.session_state.get("reasoning_submitted"):
         st.success("Your reasoning has been recorded and evaluated internally.")
+        render_feedback_and_revision()
+
+
+def render_feedback_and_revision() -> None:
+    """Display first-level feedback and let the learner request help or revise."""
+    feedback_items = st.session_state.get("reasoning_feedback", [])
+    evaluation = st.session_state.get("reasoning_evaluation", {})
+    attempt = st.session_state.get("completed_reasoning_attempt", {})
+
+    for index, item in enumerate(feedback_items):
+        st.info(item["message"])
+        if item["hint_level"] < MAX_HINT_LEVEL:
+            label = "Show Hint" if item["hint_level"] == 1 else "Show Explanation"
+            if st.button(label, key=f"hint_{index}_{item['step']}"):
+                next_level = item["hint_level"] + 1
+                updated = get_hint(
+                    evaluation,
+                    item["step"],
+                    next_level,
+                    item["issue_type"],
+                ).to_dict()
+                feedback_items[index] = updated
+                st.session_state.reasoning_feedback = feedback_items
+                st.rerun()
+
+        if st.button("Revise My Reasoning", key=f"revise_{index}_{item['step']}"):
+            history = st.session_state.get("reasoning_attempt_history", [])
+            history.append(
+                {
+                    "attempt": deepcopy(attempt),
+                    "evaluation": deepcopy(evaluation),
+                    "feedback": deepcopy(feedback_items),
+                }
+            )
+            st.session_state.reasoning_attempt_history = history
+            st.session_state.reasoning_draft = deepcopy(attempt)
+            st.session_state.reasoning_step = _step_index(item["step"])
+            st.session_state.reasoning_submitted = False
+            st.session_state.reasoning_feedback = []
+            st.rerun()
+
+
+def _step_index(step: str) -> int:
+    """Map an evaluation step name to its learner workflow position."""
+    for index, (_, field) in enumerate(STEPS):
+        if field == step:
+            return index
+    return len(STEPS) - 2
 
 
 def _validate_current_step(draft: dict[str, Any], field: str) -> list[str]:

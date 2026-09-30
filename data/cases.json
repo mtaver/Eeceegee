@@ -1,0 +1,23 @@
+[
+  {
+    "id": "case_001",
+    "title": "Basic Rhythm Recognition",
+    "difficulty": "Beginner",
+    "learning_objectives": [
+      "Determine the ventricular rate",
+      "Assess rhythm regularity",
+      "Identify P waves"
+    ],
+    "ecg_image": "assets/ecg/case_001.png",
+    "reference_findings": {
+      "rate": "",
+      "rhythm": "",
+      "axis": "",
+      "p_waves": "",
+      "pr_interval": "",
+      "qrs": "",
+      "st_t": ""
+    },
+    "reference_interpretation": ""
+  }
+]

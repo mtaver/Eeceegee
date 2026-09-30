@@ -4,10 +4,51 @@ import pytest
 
 from services.reasoning import (
     FINDING_FIELDS,
+    coerce_numeric_value,
     create_reasoning_attempt,
+    normalize_rate_widget_state,
     set_confidence,
     validate_reasoning_attempt,
 )
+
+
+def test_numeric_rate_values_are_widget_safe():
+    assert coerce_numeric_value(72) == 72
+    assert coerce_numeric_value(72.5) == 72.5
+    assert coerce_numeric_value("72") == 72
+    assert coerce_numeric_value("72.5") == 72.5
+
+
+def test_numeric_rate_defaults_and_invalid_persisted_values():
+    assert coerce_numeric_value("") is None
+    assert coerce_numeric_value(None) is None
+    assert coerce_numeric_value("not a rate") is None
+    assert coerce_numeric_value(True) is None
+
+
+def test_rate_widget_state_normalizes_persisted_and_existing_values():
+    session_state = {}
+    assert normalize_rate_widget_state(session_state, "72") == 72
+    assert session_state["reasoning_rate_answer"] == 72
+
+    session_state["reasoning_rate_answer"] = "84"
+    assert normalize_rate_widget_state(session_state, "72") == 84
+    assert session_state["reasoning_rate_answer"] == 84
+
+
+def test_rate_widget_state_clears_invalid_persisted_values_and_keeps_empty_default():
+    session_state = {"reasoning_rate_answer": "not numeric"}
+    assert normalize_rate_widget_state(session_state) is None
+    assert "reasoning_rate_answer" not in session_state
+
+    assert normalize_rate_widget_state(session_state, "") is None
+    assert session_state == {}
+
+
+def test_rate_widget_state_recovers_saved_answer_from_invalid_widget_state():
+    session_state = {"reasoning_rate_answer": "stale text"}
+    assert normalize_rate_widget_state(session_state, "78") == 78
+    assert session_state["reasoning_rate_answer"] == 78
 
 
 def test_new_attempt_has_expected_structure():

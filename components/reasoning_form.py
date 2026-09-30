@@ -8,6 +8,7 @@ import streamlit as st
 from services.reasoning import (
     FINDING_FIELDS,
     create_reasoning_attempt,
+    normalize_rate_widget_state,
     set_confidence,
     validate_reasoning_attempt,
 )
@@ -64,13 +65,8 @@ def _seed_widget_values(draft: dict[str, Any], field: str) -> None:
     """Restore this step's widget values from the session-persisted draft."""
     if field in FINDING_FIELDS:
         section = draft[field]
-        if field == "rate" and section["answer"]:
-            try:
-                rate_value = int(section["answer"])
-            except (TypeError, ValueError):
-                rate_value = None
-            if rate_value is not None:
-                st.session_state.setdefault("reasoning_rate_answer", rate_value)
+        if field == "rate":
+            normalize_rate_widget_state(st.session_state, section.get("answer"))
         else:
             st.session_state.setdefault(f"reasoning_{field}_answer", section["answer"])
         st.session_state.setdefault(f"reasoning_{field}_reasoning", section["reasoning"])
@@ -93,6 +89,8 @@ def _store_widget_values(draft: dict[str, Any], field: str) -> None:
 def _render_finding_step(draft: dict[str, Any], field: str) -> None:
     section = draft[field]
     if field == "rate":
+        rate_key = "reasoning_rate_answer"
+        normalize_rate_widget_state(st.session_state, section.get("answer"))
         st.number_input(
             "What is the ventricular rate?",
             min_value=1,
@@ -100,7 +98,7 @@ def _render_finding_step(draft: dict[str, Any], field: str) -> None:
             step=1,
             value=None,
             placeholder="Enter beats per minute",
-            key="reasoning_rate_answer",
+            key=rate_key,
         )
         # Keep a text representation in the model so all observations share one shape.
         if st.session_state.get("reasoning_rate_answer") is not None:

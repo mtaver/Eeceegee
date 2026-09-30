@@ -1,6 +1,6 @@
 """Data model and validation for structured student ECG reasoning."""
 
-from typing import Any
+from typing import Any, MutableMapping
 
 
 FINDING_FIELDS = (
@@ -12,6 +12,43 @@ FINDING_FIELDS = (
     "qrs",
     "st_t",
 )
+
+
+def coerce_numeric_value(value: Any) -> int | float | None:
+    """Convert persisted numeric input to a widget-safe number or None."""
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return value
+    if isinstance(value, str):
+        value = value.strip()
+        if not value:
+            return None
+        try:
+            numeric_value = float(value)
+        except ValueError:
+            return None
+        return int(numeric_value) if numeric_value.is_integer() else numeric_value
+    return None
+
+
+def normalize_rate_widget_state(
+    session_state: MutableMapping[str, Any],
+    persisted_answer: Any = None,
+) -> int | float | None:
+    """Normalize the keyed Streamlit value before its number_input is rendered."""
+    widget_key = "reasoning_rate_answer"
+    raw_value = session_state.get(widget_key, persisted_answer)
+    numeric_value = coerce_numeric_value(raw_value)
+    if numeric_value is None and raw_value not in (None, ""):
+        persisted_value = coerce_numeric_value(persisted_answer)
+        if persisted_value is not None:
+            session_state[widget_key] = persisted_value
+            return persisted_value
+        session_state.pop(widget_key, None)
+    elif widget_key in session_state or numeric_value is not None:
+        session_state[widget_key] = numeric_value
+    return numeric_value
 
 
 def create_reasoning_attempt(case_id: str) -> dict[str, Any]:

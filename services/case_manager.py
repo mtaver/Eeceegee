@@ -6,19 +6,29 @@ from typing import Any
 
 
 CASES_FILE = Path(__file__).resolve().parent.parent / "data" / "cases.json"
+REFERENCE_DOMAINS = (
+    "rate",
+    "rhythm",
+    "axis",
+    "p_waves",
+    "pr_interval",
+    "qrs",
+    "st_t",
+)
 REQUIRED_CASE_FIELDS = {
-    "id",
+    "case_id",
     "title",
+    "learner_title",
     "difficulty",
     "description",
     "learning_objectives",
     "ecg_image",
     "reference_findings",
     "reference_interpretation",
+    "teaching_notes",
 }
 STUDENT_CASE_FIELDS = (
-    "id",
-    "title",
+    "case_id",
     "difficulty",
     "description",
     "learning_objectives",
@@ -26,8 +36,44 @@ STUDENT_CASE_FIELDS = (
 )
 
 
+def validate_case(case: Any) -> bool:
+    """Return whether a case has the supported schema and field types."""
+    if not isinstance(case, dict) or not REQUIRED_CASE_FIELDS.issubset(case):
+        return False
+    for field in (
+        "case_id",
+        "title",
+        "learner_title",
+        "difficulty",
+        "description",
+        "reference_interpretation",
+        "teaching_notes",
+    ):
+        if not isinstance(case[field], str) or not case[field].strip():
+            return False
+    if not isinstance(case["learning_objectives"], list) or not case["learning_objectives"]:
+        return False
+    if not all(isinstance(item, str) and item.strip() for item in case["learning_objectives"]):
+        return False
+    if case["ecg_image"] is not None and not isinstance(case["ecg_image"], str):
+        return False
+
+    findings = case["reference_findings"]
+    if not isinstance(findings, dict) or not set(REFERENCE_DOMAINS).issubset(findings):
+        return False
+    for domain in REFERENCE_DOMAINS:
+        value = findings[domain]
+        if isinstance(value, str):
+            continue  # Empty strings remain valid for cases without usable references.
+        if not isinstance(value, dict):
+            return False
+        if "answer" in value and not isinstance(value["answer"], (str, int, float, list)):
+            return False
+    return True
+
+
 def load_cases() -> list[dict[str, Any]]:
-    """Load valid case records, returning an empty list for unusable data."""
+    """Load schema-valid case records, returning an empty list for invalid data."""
     try:
         with CASES_FILE.open(encoding="utf-8") as case_file:
             data = json.load(case_file)
@@ -37,15 +83,21 @@ def load_cases() -> list[dict[str, Any]]:
     if not isinstance(data, list):
         return []
 
-    return [
-        case
-        for case in data
-        if isinstance(case, dict) and REQUIRED_CASE_FIELDS.issubset(case)
-    ]
+    cases: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for item in data:
+        if not validate_case(item) or item["case_id"] in seen_ids:
+            continue
+        case = dict(item)
+        # Keep the existing app contract while case_id remains canonical in JSON.
+        case["id"] = case["case_id"]
+        cases.append(case)
+        seen_ids.add(case["case_id"])
+    return cases
 
 
 def get_cases_by_difficulty(difficulty: str) -> list[dict[str, Any]]:
-    """Return cases matching a non-empty difficulty label."""
+    """Return cases whose difficulty matches a non-empty label."""
     if not isinstance(difficulty, str) or not difficulty.strip():
         return []
     normalized_difficulty = difficulty.strip().casefold()
@@ -57,26 +109,29 @@ def get_cases_by_difficulty(difficulty: str) -> list[dict[str, Any]]:
 
 
 def get_case_by_id(case_id: str) -> dict[str, Any] | None:
-    """Return a complete case by ID, or None for invalid or unknown IDs."""
+    """Return a complete internal case by canonical case ID, or None."""
     if not isinstance(case_id, str) or not case_id.strip():
         return None
     normalized_id = case_id.strip()
-    return next((case for case in load_cases() if case["id"] == normalized_id), None)
+    return next((case for case in load_cases() if case["case_id"] == normalized_id), None)
 
 
 def get_available_difficulties() -> list[str]:
-    """Return unique difficulty labels in the order they appear in the data."""
+    """Return unique difficulty labels in data order."""
     difficulties: list[str] = []
     for case in load_cases():
         difficulty = case["difficulty"]
-        if isinstance(difficulty, str) and difficulty not in difficulties:
+        if difficulty not in difficulties:
             difficulties.append(difficulty)
     return difficulties
 
 
 def get_case_for_student(case_id: str) -> dict[str, Any] | None:
-    """Return only case presentation fields, excluding reference answers."""
+    """Return learner-safe case presentation fields only."""
     case = get_case_by_id(case_id)
     if case is None:
         return None
-    return {field: case[field] for field in STUDENT_CASE_FIELDS}
+    student_case = {field: case[field] for field in STUDENT_CASE_FIELDS}
+    student_case["id"] = case["case_id"]  # Backward-compatible UI identifier.
+    student_case["title"] = case["learner_title"]
+    return student_case

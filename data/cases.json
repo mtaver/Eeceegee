@@ -1,67 +1,140 @@
 [
   {
-    "id": "case_001",
-    "title": "Rate and Rhythm Fundamentals",
+    "case_id": "case_001",
+    "title": "Normal Sinus Rhythm",
+    "learner_title": "Rate and Rhythm Case A",
     "difficulty": "Beginner",
-    "description": "Educational placeholder case for practicing a consistent approach to heart rate and rhythm. No ECG image or reference answer has been added yet.",
+    "description": "Practice describing ventricular rate, rhythm, atrial activity, intervals, and the ST/T segments in a structured ECG review.",
     "learning_objectives": [
-      "Describe a systematic approach to estimating heart rate",
-      "Explain how to assess rhythm regularity"
+      "Estimate the ventricular rate",
+      "Describe rhythm regularity and P-wave relationships",
+      "Review the PR interval, QRS complex, axis, and ST/T segments"
     ],
     "ecg_image": null,
-    "reference_findings": {},
-    "reference_interpretation": ""
+    "reference_findings": {
+      "rate": {
+        "answer": "75",
+        "unit": "bpm",
+        "approximate": true
+      },
+      "rhythm": {
+        "answer": "Regular",
+        "evidence": "R-R intervals are regular"
+      },
+      "axis": {
+        "answer": "Normal",
+        "evidence": "QRS complexes are predominantly positive in leads I and aVF"
+      },
+      "p_waves": {
+        "answer": ["Present", "P waves present"],
+        "relationship": "One consistent P wave precedes each QRS complex"
+      },
+      "pr_interval": {
+        "answer": "Normal",
+        "duration_ms": 160
+      },
+      "qrs": {
+        "answer": "Narrow",
+        "duration_ms": 80
+      },
+      "st_t": {
+        "answer": "No obvious abnormality",
+        "description": "No significant ST-segment or T-wave abnormality"
+      }
+    },
+    "reference_interpretation": "Normal sinus rhythm",
+    "teaching_notes": "Canonical educational pattern. Add a validated ECG tracing before using this case for image-based learner interpretation."
   },
   {
-    "id": "case_002",
-    "title": "Identifying ECG Components",
-    "difficulty": "Beginner",
-    "description": "Educational placeholder case for learning the parts of an ECG tracing. No ECG image or reference answer has been added yet.",
-    "learning_objectives": [
-      "Identify the usual ECG waveform components",
-      "Describe the purpose of the PR interval and QRS complex"
-    ],
-    "ecg_image": null,
-    "reference_findings": {},
-    "reference_interpretation": ""
-  },
-  {
-    "id": "case_003",
-    "title": "Systematic ECG Analysis",
+    "case_id": "case_002",
+    "title": "Sinus Bradycardia",
+    "learner_title": "Rate and Rhythm Case B",
     "difficulty": "Intermediate",
-    "description": "Educational placeholder case for practicing a structured sequence for ECG review. No ECG image or reference answer has been added yet.",
+    "description": "Practice a systematic ECG review with particular attention to ventricular rate, rhythm regularity, and atrial activity.",
     "learning_objectives": [
-      "Organize ECG review into a repeatable sequence",
-      "Explain how observations can be documented before interpretation"
+      "Estimate and describe the ventricular rate",
+      "Assess rhythm regularity and P-wave relationships",
+      "Review axis, intervals, QRS width, and ST/T segments"
     ],
     "ecg_image": null,
-    "reference_findings": {},
-    "reference_interpretation": ""
+    "reference_findings": {
+      "rate": {
+        "answer": "50",
+        "unit": "bpm",
+        "approximate": true
+      },
+      "rhythm": {
+        "answer": "Regular",
+        "evidence": "R-R intervals are regular"
+      },
+      "axis": {
+        "answer": "Normal",
+        "evidence": "QRS complexes are predominantly positive in leads I and aVF"
+      },
+      "p_waves": {
+        "answer": ["Present", "P waves present"],
+        "relationship": "One consistent P wave precedes each QRS complex"
+      },
+      "pr_interval": {
+        "answer": "Normal",
+        "duration_ms": 160
+      },
+      "qrs": {
+        "answer": "Narrow",
+        "duration_ms": 80
+      },
+      "st_t": {
+        "answer": "No obvious abnormality",
+        "description": "No significant ST-segment or T-wave abnormality"
+      }
+    },
+    "reference_interpretation": "Sinus bradycardia",
+    "teaching_notes": "Canonical educational pattern with a slow sinus rate. Add a validated ECG tracing before using this case for image-based learner interpretation."
   },
   {
-    "id": "case_004",
-    "title": "Rhythm Differentiation",
+    "case_id": "case_003",
+    "title": "Sinus Tachycardia",
+    "learner_title": "Rate and Rhythm Case C",
     "difficulty": "Intermediate",
-    "description": "Educational placeholder case for comparing a learner's rhythm-assessment approach. No ECG image or reference answer has been added yet.",
+    "description": "Practice distinguishing rate observations from rhythm and waveform observations during a structured ECG review.",
     "learning_objectives": [
-      "Describe features used when assessing rhythm",
-      "Distinguish observations from conclusions in rhythm reasoning"
+      "Estimate and describe the ventricular rate",
+      "Assess rhythm regularity and P-wave relationships",
+      "Review axis, intervals, QRS width, and ST/T segments"
     ],
     "ecg_image": null,
-    "reference_findings": {},
-    "reference_interpretation": ""
-  },
-  {
-    "id": "case_005",
-    "title": "Complex ECG Reasoning",
-    "difficulty": "Advanced",
-    "description": "Educational placeholder case for reflecting on complex ECG reasoning strategies. No ECG image or reference answer has been added yet.",
-    "learning_objectives": [
-      "Structure a multi-step ECG reasoning process",
-      "Identify uncertainty and explain what additional review may be needed"
-    ],
-    "ecg_image": null,
-    "reference_findings": {},
-    "reference_interpretation": ""
+    "reference_findings": {
+      "rate": {
+        "answer": "120",
+        "unit": "bpm",
+        "approximate": true
+      },
+      "rhythm": {
+        "answer": "Regular",
+        "evidence": "R-R intervals are regular"
+      },
+      "axis": {
+        "answer": "Normal",
+        "evidence": "QRS complexes are predominantly positive in leads I and aVF"
+      },
+      "p_waves": {
+        "answer": ["Present", "P waves present"],
+        "relationship": "One consistent P wave precedes each QRS complex"
+      },
+      "pr_interval": {
+        "answer": "Normal",
+        "duration_ms": 160
+      },
+      "qrs": {
+        "answer": "Narrow",
+        "duration_ms": 80
+      },
+      "st_t": {
+        "answer": "No obvious abnormality",
+        "description": "No significant ST-segment or T-wave abnormality"
+      }
+    },
+    "reference_interpretation": "Sinus tachycardia",
+    "teaching_notes": "Canonical educational pattern with a fast sinus rate. Add a validated ECG tracing before using this case for image-based learner interpretation."
   }
 ]

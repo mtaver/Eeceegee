@@ -5,7 +5,7 @@ from typing import Any
 import streamlit as st
 
 from components.reasoning_form import render_feedback_and_revision, render_reasoning_form
-from services.case_manager import resolve_ecg_image_path
+from services.image_preprocessor import learner_output_path
 
 
 def render_case(case: dict[str, Any], reference_case: dict[str, Any]) -> None:
@@ -19,9 +19,9 @@ def render_case(case: dict[str, Any], reference_case: dict[str, Any]) -> None:
         st.markdown(f"- {objective}")
 
     image_path = case.get("image_path")
-    resolved_image = resolve_ecg_image_path(image_path)
-    if resolved_image:
-        st.image(str(resolved_image), caption="ECG case")
+    learner_image = learner_output_path(image_path) if image_path else None
+    if learner_image and learner_image.is_file():
+        st.image(str(learner_image), caption="ECG case")
         attribution = " · ".join(
             value for value in (case.get("source_name"), case.get("license"), case.get("source_record")) if value
         )

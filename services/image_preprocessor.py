@@ -165,3 +165,26 @@ def learner_output_path(source_path: str | Path, project_root: str | Path | None
     except ValueError:
         return None
     return output
+
+
+def resolve_learner_image_path(learner_path: str | Path, project_root: str | Path | None = None) -> Path | None:
+    """Resolve an existing learner image, accepting paths only under assets/ecg/learner.
+
+    This is deliberately separate from :func:`learner_output_path`, which maps
+    an approved source asset to its derived learner copy during preprocessing.
+    """
+    root = Path(project_root).resolve() if project_root is not None else Path(__file__).resolve().parent.parent
+    candidate = Path(learner_path)
+    if candidate.is_absolute() or candidate.drive:
+        return None
+    if len(candidate.parts) < 4 or candidate.parts[:3] != ("assets", "ecg", "learner"):
+        return None
+    if any(part in {".", ".."} for part in candidate.parts):
+        return None
+    learner_root = (root / "assets" / "ecg" / "learner").resolve()
+    resolved = (root / candidate).resolve()
+    try:
+        resolved.relative_to(learner_root)
+    except ValueError:
+        return None
+    return resolved if resolved.is_file() else None

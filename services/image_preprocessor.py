@@ -20,8 +20,11 @@ from PIL import Image, ImageDraw, UnidentifiedImageError
 # ends before the upper-right corner, where calibration information is expected.
 HEADER_REDACTION_REGION = {"x": 0.02, "y": 0.015, "width": 0.70, "height": 0.15}
 CASE_REDACTION_CONFIGS: dict[str, tuple[dict[str, float], ...]] = {
-    case_id: (HEADER_REDACTION_REGION.copy(),)
-    for case_id in ("NSR_001", "SB_001", "ST_001")
+    "NSR_001": (),
+    "SB_001": (),
+    # Retain a reusable default for future image assets that have a verified
+    # answer-revealing header in this source layout.
+    "ST_001": (HEADER_REDACTION_REGION.copy(),),
 }
 
 
@@ -102,8 +105,8 @@ def create_learner_image(
         raise ImagePreprocessingError(f"Invalid learner image output path: {output_path}") from exc
     if output == source or (output.exists() and os.path.samefile(source, output)):
         raise ImagePreprocessingError("Output path must differ from the original source image.")
-    if not isinstance(redaction_regions, Sequence) or isinstance(redaction_regions, (str, bytes)) or not redaction_regions:
-        raise ImagePreprocessingError("At least one normalized redaction region is required.")
+    if not isinstance(redaction_regions, Sequence) or isinstance(redaction_regions, (str, bytes)):
+        raise ImagePreprocessingError("Redaction regions must be a sequence of normalized regions.")
 
     try:
         with Image.open(source) as opened:

@@ -31,8 +31,15 @@ def test_all_three_cases_load_with_valid_schema():
         assert REQUIRED_CASE_FIELDS.issubset(case)
         assert set(case["reference_findings"]) == set(REFERENCE_DOMAINS)
         assert all(isinstance(case["reference_findings"][domain], dict) for domain in REFERENCE_DOMAINS)
-        assert case["image_path"] is None
-        assert all(case[field] is None for field in ("source_name", "source_url", "license", "source_record"))
+        if case["case_id"] in {"case_001", "case_002"}:
+            assert case["image_path"] == f"assets/ecg/learner/{'NSR' if case['case_id'] == 'case_001' else 'SB'}_001_learner.png"
+            assert case["source_name"].startswith("GenECG")
+            assert case["source_url"].startswith("https://huggingface.co/datasets/edcci/GenECG/")
+            assert case["license"] == "CC BY 4.0"
+            assert "PTB-XL record" in case["source_record"]
+        else:
+            assert case["image_path"] is None
+            assert all(case[field] is None for field in ("source_name", "source_url", "license", "source_record"))
 
 
 def test_difficulty_filters_match_new_case_set():

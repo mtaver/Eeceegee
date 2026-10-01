@@ -4,12 +4,13 @@ import hashlib
 from pathlib import Path
 
 import pytest
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw
 
 from services.case_manager import get_case_by_id
 from services.evaluator import EvaluationStatus, evaluate_rate
 from services.image_preprocessor import (
     CASE_REDACTION_CONFIGS,
+    HEADER_REDACTION_REGION,
     ImagePreprocessingError,
     create_learner_image,
     learner_output_path,
@@ -96,7 +97,8 @@ def test_source_cannot_be_used_as_output(tmp_path):
 
 def test_case_configs_share_header_region_and_support_distinct_layouts(tmp_path):
     assert set(CASE_REDACTION_CONFIGS) == {"NSR_001", "SB_001", "ST_001"}
-    assert CASE_REDACTION_CONFIGS["NSR_001"] == CASE_REDACTION_CONFIGS["SB_001"] == CASE_REDACTION_CONFIGS["ST_001"]
+    assert CASE_REDACTION_CONFIGS["NSR_001"] == CASE_REDACTION_CONFIGS["SB_001"] == ()
+    assert CASE_REDACTION_CONFIGS["ST_001"] == (HEADER_REDACTION_REGION,)
     source = tmp_path / "multi-region-source.png"
     first_layout_output = tmp_path / "layout-a.png"
     second_layout_output = tmp_path / "layout-b.png"
@@ -106,6 +108,18 @@ def test_case_configs_share_header_region_and_support_distinct_layouts(tmp_path)
     create_learner_image(source, first_layout_output, first_layout)
     create_learner_image(source, second_layout_output, second_layout)
     assert first_layout_output.is_file() and second_layout_output.is_file()
+
+
+def test_empty_redaction_config_preserves_entire_image_without_blank_mask(tmp_path):
+    source = tmp_path / "unmasked-source.png"
+    output = tmp_path / "unmasked-learner.png"
+    _make_test_image(source)
+
+    create_learner_image(source, output, CASE_REDACTION_CONFIGS["NSR_001"])
+
+    with Image.open(source) as original, Image.open(output) as learner:
+        assert learner.size == original.size
+        assert ImageChops.difference(original.convert("RGB"), learner.convert("RGB")).getbbox() is None
 
 
 def test_case_view_preparation_resolves_only_learner_asset_paths(tmp_path):

@@ -8,8 +8,10 @@ from services.case_manager import (
     get_case_for_student,
     get_cases_by_difficulty,
     load_cases,
+    resolve_ecg_image_path,
     validate_case,
 )
+import services.case_manager as case_manager
 from services.evaluator import EvaluationStatus, evaluate_interpretation, evaluate_rate
 
 
@@ -29,6 +31,8 @@ def test_all_three_cases_load_with_valid_schema():
         assert REQUIRED_CASE_FIELDS.issubset(case)
         assert set(case["reference_findings"]) == set(REFERENCE_DOMAINS)
         assert all(isinstance(case["reference_findings"][domain], dict) for domain in REFERENCE_DOMAINS)
+        assert case["image_path"] is None
+        assert all(case[field] is None for field in ("source_name", "source_url", "license", "source_record"))
 
 
 def test_difficulty_filters_match_new_case_set():
@@ -67,13 +71,66 @@ def test_student_projection_excludes_all_reference_material():
         "difficulty",
         "description",
         "learning_objectives",
-        "ecg_image",
+        "image_path",
+        "source_name",
+        "source_url",
+        "license",
+        "source_record",
     }
     assert case["title"] != "Normal Sinus Rhythm"
     assert "reference_findings" not in case
     assert "reference_interpretation" not in case
     assert "teaching_notes" not in case
     assert get_case_for_student("missing_case") is None
+
+
+def test_image_metadata_schema_and_learner_safe_source_attribution(monkeypatch):
+    case = get_case_by_id("case_001")
+    assert case is not None
+    case.update(
+        {
+            "image_path": "assets/ecg/case_001.png",
+            "source_name": "Educational ECG Archive",
+            "source_url": "https://example.org/ecg/case_001",
+            "license": "CC BY 4.0",
+            "source_record": "record-001",
+        }
+    )
+    assert validate_case(case)
+    monkeypatch.setattr(case_manager, "load_cases", lambda: [case])
+    student_case = get_case_for_student("case_001")
+    assert student_case is not None
+    assert student_case["image_path"] == "assets/ecg/case_001.png"
+    assert student_case["source_name"] == "Educational ECG Archive"
+    assert student_case["source_url"] == "https://example.org/ecg/case_001"
+    assert student_case["license"] == "CC BY 4.0"
+    assert student_case["source_record"] == "record-001"
+    assert not {"reference_findings", "reference_interpretation", "teaching_notes"}.intersection(student_case)
+
+
+def test_image_path_must_be_local_and_resolve_under_ecg_assets(tmp_path, monkeypatch):
+    case = get_case_by_id("case_001")
+    assert case is not None
+    case.update(
+        {
+            "image_path": "assets/ecg/sample.png",
+            "source_name": "Archive",
+            "source_url": "https://example.org/record",
+            "license": "CC BY 4.0",
+            "source_record": "sample",
+        }
+    )
+    monkeypatch.setattr(case_manager, "CASES_FILE", tmp_path / "data" / "cases.json")
+    asset = tmp_path / "assets" / "ecg" / "sample.png"
+    asset.parent.mkdir(parents=True)
+    asset.write_bytes(b"local test asset")
+    assert validate_case(case)
+    assert resolve_ecg_image_path(case["image_path"]) == asset.resolve()
+    assert resolve_ecg_image_path("https://example.org/image.png") is None
+    assert resolve_ecg_image_path("assets/ecg/../../outside.png") is None
+    assert resolve_ecg_image_path("assets/ecg/missing.png") is None
+    case["image_path"] = "assets/other/sample.png"
+    assert not validate_case(case)
 
 
 def test_reference_data_remains_available_to_evaluator_only_internally():

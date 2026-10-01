@@ -1,11 +1,11 @@
 """Learner-facing presentation for an ECG educational case."""
 
-from pathlib import Path
 from typing import Any
 
 import streamlit as st
 
 from components.reasoning_form import render_feedback_and_revision, render_reasoning_form
+from services.case_manager import resolve_ecg_image_path
 
 
 def render_case(case: dict[str, Any], reference_case: dict[str, Any]) -> None:
@@ -18,15 +18,19 @@ def render_case(case: dict[str, Any], reference_case: dict[str, Any]) -> None:
     for objective in case["learning_objectives"]:
         st.markdown(f"- {objective}")
 
-    image_path = case.get("ecg_image")
-    if image_path:
-        resolved_image = Path(__file__).resolve().parent.parent / image_path
-        if resolved_image.is_file():
-            st.image(str(resolved_image), caption="ECG case")
-        else:
-            st.info("ECG image will be added for this case.")
+    image_path = case.get("image_path")
+    resolved_image = resolve_ecg_image_path(image_path)
+    if resolved_image:
+        st.image(str(resolved_image), caption="ECG case")
+        attribution = " · ".join(
+            value for value in (case.get("source_name"), case.get("license"), case.get("source_record")) if value
+        )
+        if attribution:
+            st.caption(f"Image source: {attribution}")
+        if case.get("source_url"):
+            st.markdown(f"[View source record]({case['source_url']})")
     else:
-        st.info("ECG image will be added for this case.")
+        st.info("No sourced ECG image is available yet. This case can still be completed using the reasoning workflow.")
 
     st.divider()
     if st.session_state.get("reasoning_submitted"):

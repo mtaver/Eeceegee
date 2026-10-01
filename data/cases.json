@@ -10,7 +10,11 @@
       "Describe rhythm regularity and P-wave relationships",
       "Review the PR interval, QRS complex, axis, and ST/T segments"
     ],
-    "ecg_image": null,
+    "image_path": null,
+    "source_name": null,
+    "source_url": null,
+    "license": null,
+    "source_record": null,
     "reference_findings": {
       "rate": {
         "answer": "75",
@@ -56,7 +60,11 @@
       "Assess rhythm regularity and P-wave relationships",
       "Review axis, intervals, QRS width, and ST/T segments"
     ],
-    "ecg_image": null,
+    "image_path": null,
+    "source_name": null,
+    "source_url": null,
+    "license": null,
+    "source_record": null,
     "reference_findings": {
       "rate": {
         "answer": "50",
@@ -102,7 +110,11 @@
       "Assess rhythm regularity and P-wave relationships",
       "Review axis, intervals, QRS width, and ST/T segments"
     ],
-    "ecg_image": null,
+    "image_path": null,
+    "source_name": null,
+    "source_url": null,
+    "license": null,
+    "source_record": null,
     "reference_findings": {
       "rate": {
         "answer": "120",

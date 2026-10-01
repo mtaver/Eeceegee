@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 
 CASES_FILE = Path(__file__).resolve().parent.parent / "data" / "cases.json"
@@ -22,7 +23,11 @@ REQUIRED_CASE_FIELDS = {
     "difficulty",
     "description",
     "learning_objectives",
-    "ecg_image",
+    "image_path",
+    "source_name",
+    "source_url",
+    "license",
+    "source_record",
     "reference_findings",
     "reference_interpretation",
     "teaching_notes",
@@ -32,7 +37,11 @@ STUDENT_CASE_FIELDS = (
     "difficulty",
     "description",
     "learning_objectives",
-    "ecg_image",
+    "image_path",
+    "source_name",
+    "source_url",
+    "license",
+    "source_record",
 )
 
 
@@ -55,7 +64,17 @@ def validate_case(case: Any) -> bool:
         return False
     if not all(isinstance(item, str) and item.strip() for item in case["learning_objectives"]):
         return False
-    if case["ecg_image"] is not None and not isinstance(case["ecg_image"], str):
+    image_path = case["image_path"]
+    if image_path is not None and not _is_safe_ecg_image_path(image_path):
+        return False
+    for field in ("source_name", "source_url", "license", "source_record"):
+        if case[field] is not None and (not isinstance(case[field], str) or not case[field].strip()):
+            return False
+    if case["source_url"] is not None:
+        parsed_url = urlparse(case["source_url"])
+        if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
+            return False
+    if image_path is not None and not all(case[field] for field in ("source_name", "source_url", "license", "source_record")):
         return False
 
     findings = case["reference_findings"]
@@ -70,6 +89,33 @@ def validate_case(case: Any) -> bool:
         if "answer" in value and not isinstance(value["answer"], (str, int, float, list)):
             return False
     return True
+
+
+def _is_safe_ecg_image_path(image_path: Any) -> bool:
+    """Accept only relative local assets located beneath assets/ecg/."""
+    if not isinstance(image_path, str) or not image_path.strip() or "\\" in image_path:
+        return False
+    candidate = Path(image_path)
+    return (
+        not candidate.is_absolute()
+        and not candidate.drive
+        and len(candidate.parts) >= 3
+        and candidate.parts[0:2] == ("assets", "ecg")
+        and all(part not in {".", ".."} for part in candidate.parts)
+    )
+
+
+def resolve_ecg_image_path(image_path: Any) -> Path | None:
+    """Resolve a schema-safe case image path to an existing local file."""
+    if not _is_safe_ecg_image_path(image_path):
+        return None
+    project_root = CASES_FILE.parent.parent.resolve()
+    resolved = (project_root / image_path).resolve()
+    try:
+        resolved.relative_to((project_root / "assets" / "ecg").resolve())
+    except ValueError:
+        return None
+    return resolved if resolved.is_file() else None
 
 
 def load_cases() -> list[dict[str, Any]]:

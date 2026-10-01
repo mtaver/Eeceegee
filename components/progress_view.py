@@ -9,6 +9,33 @@ from services.case_manager import get_case_for_student
 from services.progress import get_progress_summary
 
 
+_STEP_DISPLAY_LABELS = {
+    "rate": "Rate",
+    "rhythm": "Rhythm",
+    "axis": "Axis",
+    "p_waves": "P waves",
+    "pr_interval": "PR interval",
+    "qrs": "QRS",
+    "st_t": "ST/T",
+    "interpretation": "Interpretation",
+    "overall_reasoning": "Overall reasoning",
+}
+
+
+def _display_step_name(step: str) -> str:
+    """Format internal progress step IDs with standard learner-facing ECG casing."""
+    normalized = step.strip().casefold().replace(" ", "_")
+    return _STEP_DISPLAY_LABELS.get(normalized, step.replace("_", " ").capitalize())
+
+
+def _display_reasoning_label(value: str) -> str:
+    suffix = " reasoning"
+    if value.casefold().endswith(suffix):
+        step = value[: -len(suffix)].strip()
+        return f"{_display_step_name(step)} reasoning"
+    return value
+
+
 def _display_time(value: str) -> str:
     try:
         return datetime.fromisoformat(value).astimezone().strftime("%b %d, %Y %H:%M")
@@ -32,21 +59,22 @@ def render_progress(progress: dict[str, Any]) -> None:
     st.subheader("Areas for Practice")
     if summary["areas_for_practice"]:
         for item in summary["areas_for_practice"]:
-            st.markdown(f"- {item}")
+            st.markdown(f"- {_display_reasoning_label(item)}")
     else:
         st.caption("More reasoning attempts are needed to identify recurring practice areas.")
 
     st.subheader("Strengths")
     if summary["top_strengths"]:
         for item in summary["top_strengths"]:
-            st.markdown(f"- {item}")
+            st.markdown(f"- {_display_reasoning_label(item)}")
     else:
         st.caption("Strengths will appear as consistent evidence builds across attempts.")
 
     st.subheader("Recent Improvements")
     if summary["recent_improvements"]:
         for improvement in summary["recent_improvements"]:
-            st.markdown(f"- {improvement['message']}")
+            step_label = _display_step_name(improvement["step"])
+            st.markdown(f"- You resolved a {step_label} reasoning issue identified in an earlier attempt.")
     else:
         st.caption("No resolved issues have been recorded yet.")
 
@@ -56,18 +84,7 @@ def render_progress(progress: dict[str, Any]) -> None:
             st.write(f"- {pattern}")
 
     st.subheader("Reasoning by ECG Step")
-    labels = {
-        "rate": "Rate",
-        "rhythm": "Rhythm",
-        "axis": "Axis",
-        "p_waves": "P Waves",
-        "pr_interval": "PR Interval",
-        "qrs": "QRS",
-        "st_t": "ST/T",
-        "interpretation": "Interpretation",
-        "overall_reasoning": "Overall Reasoning",
-    }
-    for step, label in labels.items():
+    for step, label in _STEP_DISPLAY_LABELS.items():
         stats = summary["step_statistics"][step]
         st.write(
             f"**{label}** — attempts: {stats['attempts']} · issues: {stats['issues']} · "

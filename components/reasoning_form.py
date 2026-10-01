@@ -33,6 +33,18 @@ STEPS = (
     ("Overall reasoning", "overall_reasoning"),
     ("Confidence", "confidence"),
 )
+_DISPLAY_STEPS = {
+    "rate": "Rate",
+    "rhythm": "Rhythm",
+    "axis": "Axis",
+    "p_waves": "P waves",
+    "pr_interval": "PR interval",
+    "qrs": "QRS",
+    "st_t": "ST/T",
+    "interpretation": "Overall interpretation",
+    "overall_reasoning": "Overall reasoning",
+}
+_HINT_LEVEL_LABELS = {1: "Guiding question", 2: "Hint", 3: "Explanation"}
 
 
 def _get_draft(case_id: str) -> dict[str, Any]:
@@ -245,17 +257,36 @@ def render_reasoning_form(case_id: str, reference_case: dict[str, Any]) -> None:
                     st.rerun()
 
     if st.session_state.get("reasoning_submitted"):
-        st.success("Your reasoning has been recorded and evaluated internally.")
+        st.success(
+            "Your reasoning attempt has been recorded. Review the feedback and revise your interpretation "
+            "to strengthen your ECG reasoning."
+        )
         render_feedback_and_revision()
 
 
 def render_feedback_and_revision() -> None:
-    """Display first-level feedback and let the learner request help or revise."""
+    """Show the submitted response beside its Socratic guidance and revision controls."""
     feedback_items = st.session_state.get("reasoning_feedback", [])
     evaluation = st.session_state.get("reasoning_evaluation", {})
     attempt = st.session_state.get("completed_reasoning_attempt", {})
 
+    st.subheader("Feedback")
+    st.caption("Guidance on your submitted reasoning. Review it, request help, or revise the related step.")
     for index, item in enumerate(feedback_items):
+        step = item["step"]
+        step_label = _DISPLAY_STEPS.get(step, step.replace("_", " ").capitalize())
+        st.markdown(f"**Your response · {step_label}**")
+        if step in FINDING_FIELDS:
+            response = attempt.get(step, {})
+            answer = response.get("answer", "") if isinstance(response, dict) else ""
+            reasoning = response.get("reasoning", "") if isinstance(response, dict) else ""
+            st.write(f"Observation: {answer or 'No observation recorded.'}")
+            st.write(f"Reasoning: {reasoning or 'No reasoning recorded.'}")
+        else:
+            response = attempt.get(step, "")
+            st.write(f"Response: {response or 'No response recorded.'}")
+
+        st.caption(f"{step_label} · {_HINT_LEVEL_LABELS.get(item['hint_level'], 'Feedback')}")
         st.info(item["message"])
         if item["hint_level"] < MAX_HINT_LEVEL:
             label = "Show Hint" if item["hint_level"] == 1 else "Show Explanation"

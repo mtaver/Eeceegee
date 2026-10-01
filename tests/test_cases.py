@@ -6,6 +6,7 @@ from services.case_manager import (
     get_available_difficulties,
     get_case_by_id,
     get_case_for_student,
+    get_learner_case_labels,
     get_cases_by_difficulty,
     load_cases,
     resolve_ecg_image_path,
@@ -42,6 +43,18 @@ def test_all_three_cases_load_with_valid_schema():
             assert all(case[field] is None for field in ("source_name", "source_url", "license", "source_record"))
 
 
+def test_learner_case_selector_uses_neutral_labels():
+    cases = load_cases()
+    labels = get_learner_case_labels(cases)
+
+    assert labels == {
+        "case_001": "ECG Learning Case 1",
+        "case_002": "ECG Learning Case 2",
+        "case_003": "ECG Learning Case 3",
+    }
+    assert not set(labels.values()).intersection(EXPECTED_CASES.values())
+
+
 def test_difficulty_filters_match_new_case_set():
     assert get_available_difficulties() == ["Beginner", "Intermediate"]
     assert len(get_cases_by_difficulty("Beginner")) == 1
@@ -55,6 +68,8 @@ def test_retrieving_existing_and_missing_cases():
     case = get_case_by_id("case_001")
     assert case is not None
     assert case["title"] == "Normal Sinus Rhythm"
+    assert case["reference_interpretation"] == "Normal sinus rhythm"
+    assert case["reference_findings"]["rate"]["answer"] == "75"
     assert case["id"] == case["case_id"]
     assert get_case_by_id("missing_case") is None
     assert get_case_by_id("") is None
@@ -85,6 +100,7 @@ def test_student_projection_excludes_all_reference_material():
         "source_record",
     }
     assert case["title"] != "Normal Sinus Rhythm"
+    assert case["title"] == "ECG Learning Case 1"
     assert "reference_findings" not in case
     assert "reference_interpretation" not in case
     assert "teaching_notes" not in case

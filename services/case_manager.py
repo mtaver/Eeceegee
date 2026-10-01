@@ -181,3 +181,14 @@ def get_case_for_student(case_id: str) -> dict[str, Any] | None:
     student_case["id"] = case["case_id"]  # Backward-compatible UI identifier.
     student_case["title"] = case["learner_title"]
     return student_case
+
+
+def get_learner_case_labels(cases: list[dict[str, Any]]) -> dict[str, str]:
+    """Return neutral learner-facing selector labels keyed by internal case ID."""
+    return {
+        case["case_id"]: case["learner_title"]
+        for case in cases
+        if isinstance(case, dict)
+        and isinstance(case.get("case_id"), str)
+        and isinstance(case.get("learner_title"), str)
+    }

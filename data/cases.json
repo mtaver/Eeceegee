@@ -2,7 +2,7 @@
   {
     "case_id": "case_001",
     "title": "Normal Sinus Rhythm",
-    "learner_title": "Rate and Rhythm Case A",
+    "learner_title": "ECG Learning Case 1",
     "difficulty": "Beginner",
     "description": "Practice describing ventricular rate, rhythm, atrial activity, intervals, and the ST/T segments in a structured ECG review.",
     "learning_objectives": [
@@ -52,7 +52,7 @@
   {
     "case_id": "case_002",
     "title": "Sinus Bradycardia",
-    "learner_title": "Rate and Rhythm Case B",
+    "learner_title": "ECG Learning Case 2",
     "difficulty": "Intermediate",
     "description": "Practice a systematic ECG review with particular attention to ventricular rate, rhythm regularity, and atrial activity.",
     "learning_objectives": [
@@ -102,7 +102,7 @@
   {
     "case_id": "case_003",
     "title": "Sinus Tachycardia",
-    "learner_title": "Rate and Rhythm Case C",
+    "learner_title": "ECG Learning Case 3",
     "difficulty": "Intermediate",
     "description": "Practice distinguishing rate observations from rhythm and waveform observations during a structured ECG review.",
     "learning_objectives": [

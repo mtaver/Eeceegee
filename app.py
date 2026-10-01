@@ -8,12 +8,13 @@ from services.case_manager import (
     get_case_for_student,
     get_cases_by_difficulty,
     get_available_difficulties,
+    get_learner_case_labels,
 )
 from services.progress import initialize_progress_session, record_case_started
 from services.case_manager import get_case_by_id
 
 
-st.set_page_config(page_title="ECG Learning Coach", page_icon="🫀", layout="centered")
+st.set_page_config(page_title="ECG Learning Coach", page_icon="🫀", layout="wide")
 
 st.title("ECG Learning Coach")
 st.write(
@@ -87,10 +88,10 @@ else:
         if not cases:
             st.info("No cases are available at this difficulty yet.")
         else:
-            case_labels = {case["id"]: case["title"] for case in cases}
+            case_labels = get_learner_case_labels(cases)
             selected_case_id = st.selectbox(
                 "Choose a case",
-                options=list(case_labels),
+                options=[case["id"] for case in cases],
                 format_func=lambda case_id: case_labels[case_id],
                 key="case_selection",
             )

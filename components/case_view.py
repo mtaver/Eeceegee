@@ -14,27 +14,34 @@ def render_case(case: dict[str, Any], reference_case: dict[str, Any]) -> None:
     st.caption(f"Difficulty: {case['difficulty']}")
     st.write(case["description"])
 
-    st.subheader("Learning objectives")
-    for objective in case["learning_objectives"]:
-        st.markdown(f"- {objective}")
+    image_column, work_column = st.columns([1.3, 1], gap="large")
+    with image_column:
+        image_path = case.get("image_path")
+        learner_image = resolve_learner_image_path(image_path) if image_path else None
+        if learner_image and learner_image.is_file():
+            st.image(str(learner_image), caption="ECG case", use_container_width=True)
+            attribution = " · ".join(
+                value for value in (case.get("source_name"), case.get("license"), case.get("source_record")) if value
+            )
+            if attribution:
+                st.caption(f"Image source: {attribution}")
+            if case.get("source_url"):
+                st.markdown(f"[View source record]({case['source_url']})")
+        else:
+            st.info("No sourced ECG image is available yet. This case can still be completed using the reasoning workflow.")
 
-    image_path = case.get("image_path")
-    learner_image = resolve_learner_image_path(image_path) if image_path else None
-    if learner_image and learner_image.is_file():
-        st.image(str(learner_image), caption="ECG case")
-        attribution = " · ".join(
-            value for value in (case.get("source_name"), case.get("license"), case.get("source_record")) if value
-        )
-        if attribution:
-            st.caption(f"Image source: {attribution}")
-        if case.get("source_url"):
-            st.markdown(f"[View source record]({case['source_url']})")
-    else:
-        st.info("No sourced ECG image is available yet. This case can still be completed using the reasoning workflow.")
+        st.subheader("Learning objectives")
+        for objective in case["learning_objectives"]:
+            st.markdown(f"- {objective}")
 
-    st.divider()
-    if st.session_state.get("reasoning_submitted"):
-        st.success("Your reasoning has been recorded and evaluated internally.")
-        render_feedback_and_revision()
-    else:
-        render_reasoning_form(case["id"], reference_case)
+    with work_column:
+        if st.session_state.get("reasoning_submitted"):
+            st.success(
+                "Your reasoning attempt has been recorded. Review the feedback and revise your interpretation "
+                "to strengthen your ECG reasoning."
+            )
+            render_feedback_and_revision()
+        else:
+            st.caption("Review the ECG, then work through the reasoning steps in order.")
+            st.subheader("Reasoning")
+            render_reasoning_form(case["id"], reference_case)
